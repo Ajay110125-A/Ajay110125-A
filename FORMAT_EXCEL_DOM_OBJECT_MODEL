@@ -1,0 +1,316 @@
+## Create Workbook
+
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" 
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" 
+          xmlns:x="urn:schemas-microsoft-com:office:excel">
+ <DocumentProperties>
+  <Author>BSI50013</Author>
+ </DocumentProperties>
+
+</Workbook>
+
+## Line code SAP:
+
+DATA: 
+lo_ixml TYPE REF TO if_ixml, 
+lo_document TYPE REF TO if_ixml_document, 
+lo_element_root TYPE REF TO if_ixml_element, 
+lo_attribute TYPE REF TO if_ixml_attribute, 
+lo_element_prop TYPE REF TO if_ixml_element, 
+ld_value TYPE string.
+ 
+## Creating an ixml Factory
+   lo_ixml = cl_ixml=>create( ).
+ 
+## Creating the DOM Object Model for Excel file
+   lo_document = lo_ixml->create_document( ).
+ 
+## Create Root Node 'Workbook'
+   lo_element_root = lo_document->create_simple_element(
+     name = 'Workbook'
+     parent = lo_document ).
+ 
+   lo_element_root->set_attribute(
+     name = 'xmlns'
+     value = 'urn:schemas-microsoft-com:office:spreadsheet' ).
+ 
+   lo_attribute = lo_document->create_namespace_decl(
+     name = 'ss'
+     prefix = 'xmlns'
+     uri = 'urn:schemas-microsoft-com:office:spreadsheet' ).
+ 
+   lo_element_root->set_attribute_node( lo_attribute ).
+ 
+   lo_attribute = lo_document->create_namespace_decl(
+     name = 'x'
+     prefix = 'xmlns'
+     uri = 'urn:schemas-microsoft-com:office:excel' ).
+ 
+   lo_element_root->set_attribute_node( lo_attribute ).
+ 
+## Create node for document properties.
+   lo_element_prop = lo_document->create_simple_element(
+     name = 'DocumentProperties'
+     parent  = lo_element_root ).
+ 
+## Properties for Author
+   ld_value = sy-uname.
+   lo_document->create_simple_element(
+     name = 'Author'
+     value = ld_value
+     parent = lo_element_prop ).
+
+## Create Styles
+
+<Styles>
+ <Style ss:ID="Default" ss:Name="Normal">
+  <Alignment ss:Horizontal="Left" ss:Vertical="Top"/>
+  <Font ss:FontName="Calibri" ss:Size="11"/>
+ </Style>
+</Styles>
+
+## Line code SAP:
+
+DATA:
+lo_styles TYPE REF TO if_ixml_element,
+lo_style TYPE REF TO if_ixml_element, 
+lo_format TYPE REF TO if_ixml_element.
+
+   lo_styles = lo_document->create_simple_element(
+     name = 'Styles'
+     parent = lo_element_root ). 
+ 
+   lo_style = lo_document->create_simple_element(
+     name = 'Style'
+     parent = lo_styles ).
+   lo_style->set_attribute_ns(
+     name = 'ID'
+     prefix = 'ss'
+     value = 'Default' ).
+ 
+   lo_style->set_attribute_ns(
+     name = 'Name'
+     prefix = 'ss'
+     value = 'Normal' ). 
+ 
+## Alignment
+   lo_format  = lo_document->create_simple_element(
+     name = 'Alignment'
+     parent = lo_style ). 
+ 
+   lo_format->set_attribute_ns(
+     name = 'Horizontal'
+     prefix  = 'ss'
+     value = 'Left' ).
+ 
+   lo_format->set_attribute_ns(
+     name = 'Vertical'
+     prefix  = 'ss'
+     value = 'Top' ). 
+
+## Font
+   lo_format  = lo_document->create_simple_element(
+     name = 'Font'
+     parent = lo_style  ).
+ 
+   lo_format->set_attribute_ns(
+     name = 'FontName'
+     prefix = 'ss'
+     value = 'Calibri' ).
+ 
+   lo_format->set_attribute_ns(
+     name = 'Size'
+     prefix = 'ss'
+     value = '11' ).
+
+## Create Worksheet
+
+<Worksheet ss:Name="Sheet1">
+</Worksheet>
+
+## Line code SAP:
+
+   DATA: lo_worksheet TYPE REF TO if_ixml_element.
+
+   lo_worksheet = lo_document->create_simple_element(
+     name = 'Worksheet'
+     parent = lo_element_root ).
+ 
+   lo_worksheet->set_attribute_ns(
+     name = 'Name'
+     prefix = 'ss'
+     value = 'Sheet1' ).
+
+## Create Table
+
+<Table x:FullColumns="1" x:FullRows="1">
+</Table>
+
+## Line code SAP:
+
+   DATA: lo_table TYPE REF TO if_ixml_element.
+
+   lo_table = lo_document->create_simple_element(
+     name = 'Table'
+     parent = lo_worksheet ). 
+ 
+   lo_table->set_attribute_ns(
+     name = 'FullColumns'
+     prefix = 'x'
+     value = '1' ).
+ 
+   lo_table->set_attribute_ns(
+     name = 'FullRows'
+     prefix = 'x'
+     value = '1' ).
+
+## Create Column 
+
+   <Column ss:AutoFitWidth="1"/>
+   <Column ss:AutoFitWidth="1"/>
+
+## Line code SAP:
+
+DATA: lo_column TYPE REF TO if_ixml_element.
+DO 2 TIMES. 
+   lo_column = lo_document->create_simple_element(
+       name = 'Column'
+       parent = lo_table ).
+ 
+    lo_column->set_attribute_ns(
+       name = 'AutoFitWidth'
+       prefix = 'ss'
+       value = '1' ).
+ENDDO.
+
+## Create Row
+
+<Row ss:AutoFitHeight="1">
+</Row>
+
+## Line code SAP:
+
+    DATA: lo_row TYPE REF TO if_ixml_element. 
+
+    lo_row = lo_document->create_simple_element(
+       name = 'Row'
+       parent = lo_table ).
+     lo_row->set_attribute_ns(
+       name = 'AutoFitHeight'
+       prefix = 'ss'
+       value  = '1' ).
+
+## Create Cell to write data
+
+    <Cell ss:StyleID="Default">
+     <Data ss:Type="String">R1C1</Data>
+    </Cell>
+    <Cell ss:StyleID="Default">
+     <Data ss:Type="String">R1C2</Data>
+    </Cell>
+
+## Line code SAP:
+
+ DATA: lo_cell TYPE REF TO if_ixml_element,
+       lo_data TYPE REF TO if_ixml_element.
+
+     lo_cell = lo_document->create_simple_element(
+       name = 'Cell'
+       parent = lo_row ).
+     lo_cell->set_attribute_ns(
+       name = 'StyleID'
+       prefix = 'ss'
+       value = 'Default' ).
+     lo_data = lo_document->create_simple_element(
+       name = 'Data'
+       value = 'R1C1'
+       parent = lo_cell ).
+     lo_data->set_attribute_ns(
+       name = 'Type'
+       prefix  = 'ss'
+       value = 'String' ). 
+
+     lo_cell = lo_document->create_simple_element(
+       name = 'Cell'
+       parent = lo_row ).
+     lo_cell->set_attribute_ns(
+       name = 'StyleID'
+       prefix = 'ss'
+       value = 'Default' ).
+     lo_data = lo_document->create_simple_element(
+       name = 'Data'
+       value = 'R1C2'
+       parent = lo_cell ).
+     lo_data->set_attribute_ns(
+       name = 'Type'
+       prefix  = 'ss'
+       value = 'String' ).
+
+## Saving XML
+
+ TYPES: BEGIN OF ty_xml_line,
+         data(255) TYPE x,
+        END OF ty_xml_line.
+ 
+ DATA: t_xml TYPE TABLE OF ty_xml_line.
+ DATA: lo_streamfactory TYPE REF TO if_ixml_stream_factory,
+       lo_ostream TYPE REF TO if_ixml_ostream,
+       lo_renderer TYPE REF TO if_ixml_renderer,
+       ld_size type i,
+       ld_rc type i.
+## Creating a Stream Factory
+   lo_streamfactory = lo_ixml->create_stream_factory( ).
+
+## Connect Internal XML Table to Stream Factory
+   lo_ostream = lo_streamfactory->create_ostream_itable( table = t_xml ).
+
+## Rendering the Document
+   lo_renderer = lo_ixml->create_renderer( 
+     ostream = lo_ostream 
+     document = lo_document ).
+
+   ld_rc = lo_renderer->render( ).
+
+## Saving the XML Document
+   ld_size = lo_ostream->get_num_written_raw( ).
+
+## Download XML to Local File in format *.XLS
+
+   DATA: ld_file TYPE string,
+         ld_path TYPE string,
+         ld_filelen TYPE i,
+         ld_fullpath TYPE string, 
+         ld_lines TYPE i,
+         ld_inlen TYPE i.
+ 
+   CALL METHOD cl_gui_frontend_services=>file_save_dialog
+     EXPORTING
+       window_title         = 'Download to Excel'
+       default_extension    = 'XLS'
+     CHANGING
+       filename             = ld_file
+       path                 = ld_path
+       fullpath             = ld_fullpath
+     EXCEPTIONS
+       cntl_error           = 1
+       error_no_gui         = 2
+       not_supported_by_gui = 3
+       OTHERS               = 4.
+ 
+   CHECK sy-subrc = 0.
+
+   DESCRIBE TABLE t_xml LINES ld_lines.   
+   ld_inlen = ld_lines * 255.
+   CALL FUNCTION 'GUI_DOWNLOAD'
+     EXPORTING
+       bin_filesize            = ld_inlen
+       filename                = ld_fullpath
+       filetype                = 'BIN'
+     IMPORTING
+       filelength              = ld_filelen
+     TABLES
+       data_tab                = t_xml.
+   IF sy-subrc <> 0.
+     MESSAGE e008(aq) WITH 'Download failed'.
+   ENDIF.
+
